@@ -1,6 +1,10 @@
+"use client";
 import React, { useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import greenBullets from "../public/assets/greenBullets.svg";
+import aboutImg from "../public/assets/aboutImg.svg";
+import Image from "next/image";
 
 const About = () => {
   const controls = useAnimation();
@@ -21,73 +25,60 @@ const About = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 1 } },
   };
 
+  const features = [
+    "Easy resident onboarding",
+    "Digital visitor invitations & QR codes",
+    "Real-time security monitoring",
+    "Automated notifications & alerts",
+  ];
+  const childVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 1 } },
+  };
   return (
     <motion.div
       ref={ref}
       initial="hidden"
       animate={controls}
       variants={aboutVariants}
-      className="flex flex-col gap-[40px] items-center xsm:px-[25px] mb-[190px]"
+      className="flex flex-col md:flex-row md:justify-between gap-[40px] items-center xsm:px-[25px] mb-[190px] xsm:mt-4"
     >
-      <div className="flex flex-col items-center justify-center">
-        <span className="sub-head ">About me</span>
-        <span className="sub-des ">Get to know me</span>
-      </div>
-      <div className="flex flex-col gap-[40px]">
-        <motion.span
-          className="text-center text-white max-w-[840px] font-[Inter] text-[17px] leading-6"
-          variants={aboutVariants}
-        >
-          Hi there! I'm Tobiloba, a software engineer specializing in full-stack
-          development, system optimization, application architecture, and
-          DevOps. With a passion for building robust and scalable solutions, I'm
-          dedicated to helping businesses enhance their digital presence and
-          streamline their operations in today's technology-driven world.
-        </motion.span>
-        <motion.span
-          className="text-center text-white max-w-[840px] font-[Inter] text-[17px] leading-6"
-          variants={aboutVariants}
-        >
-          I bring a blend of technical expertise, hands-on experience, and a
-          commitment to clear communication to every project. Whether it's
-          designing efficient systems, optimizing performance, or implementing
-          scalable solutions, I'm here to help you harness the full potential of
-          technology to achieve your goals.
-        </motion.span>
-        <motion.span
-          className="text-center text-white max-w-[840px] font-[Inter] text-[17px] leading-6"
-          variants={aboutVariants}
-        >
-          Let's work together to transform your ideas into robust and scalable
-          software solutions that drive real results. Get in touch, and let's
-          start unlocking the power of technology for your business today!
-        </motion.span>
+      <div className="md:w-1/2">
+        <div className="flex flex-col items-start justify-center">
+          <span className="abt-head ">About Us</span>
+          <span className="abt-des my-3">
+            {" "}
+            A Smarter Way to Manage Estate Access
+          </span>
+        </div>
+        <motion.div className="flex flex-col gap-[40px] text-black">
+          <motion.span
+            className="text-start  my-3  abt-body"
+            variants={aboutVariants}
+          >
+            Our system simplifies estate management by streamlining resident
+            registration, visitor approvals, and security oversight. No more
+            manual logs or long wait times—just a seamless, secure experience
+            for everyone.
+          </motion.span>
+          {features.map((feature) => (
+            <motion.div
+              variants={childVariants}
+              className="flex gap-3 items-center"
+            >
+              <Image src={greenBullets} alt="greenBullets" />
+              <motion.span
+                variants={aboutVariants}
+                className="text-start   font-[Inter] text-[17px] leading-6"
+              >
+                {feature}
+              </motion.span>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
       <div className="flex flex-wrap gap-4">
-        <motion.a
-          href="/cv/Oluwatobiloba-Oluwadare CV.pdf" // Correct path
-          target="_blank" // Opens in a new tab
-          whileHover={{
-            scale: 1.05,
-            backgroundColor: "#4FC3F7",
-            color: "#000",
-          }}
-          className="font-[Montserrat] w-fit my-3 border text-white cursor-pointer border-[#4FC3F7] py-[18px] px-[50px] rounded-[75px] transition duration-300 ease-in-out"
-        >
-          View CV
-        </motion.a>
-        <motion.a
-          href="/cv/Oluwatobiloba-Oluwadare CV.pdf" // Correct path
-          download="Oluwatobiloba-Oluwadare CV.pdf"
-          whileHover={{
-            scale: 1.05,
-            backgroundColor: "#4FC3F7",
-            color: "#000",
-          }}
-          className="font-[Montserrat] w-fit my-3 border text-white cursor-pointer border-[#4FC3F7] py-[18px] px-[50px] rounded-[75px] transition duration-300 ease-in-out"
-        >
-          Download CV
-        </motion.a>
+        <Image src={aboutImg} alt="aboutImg" />
       </div>
     </motion.div>
   );

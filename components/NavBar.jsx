@@ -1,40 +1,44 @@
 "use client";
-
+import Image from "next/image";
 import React, { useState } from "react";
-import "../app/globals.css"; // Correct path to your global CSS
+import logo from "../public/assets/logo.svg";
+import ham from "../public/assets/ham.svg";
 import SideBar from "./SideBar";
 
-const NavBar = () => {
+const Navbar = () => {
   const [isActive, setIsActive] = useState(false);
-
-  const toggleMenu = () => {
+  const handleSidebar = () => {
     setIsActive(!isActive);
+    console.log("sidebar handled");
   };
-
   return (
-    <div className="flex justify-between xsm:px-[30px] md:justify-evenly items-center py-[30px] w-full">
-      {isActive && <SideBar />}
-      <span className="logoStyle">Tobiloba</span>
-      <section className="md:flex hidden nav-items">
-        <span>Home</span>
-        <span>About</span>
-        <span>Project</span>
-        <span>Services</span>
-        <span>Resume</span>
+    <div className="flex justify-between min-w-full items-center py-2">
+      {isActive && <SideBar setIsActive={setIsActive} isActive={isActive} />}
+      <section className="flex gap-[40px]   ">
+        <span>
+          <Image src={logo} alt="logo" />
+        </span>
+        <div className=" gap-[32px] items-center itemTabs hidden md:flex">
+          <span>Home</span>
+          <span>About Us</span>
+          <span>How it work</span>
+          <span>Contact Us</span>
+        </div>
       </section>
-      <section className="contact-item hidden md:flex transition duration-300 ease-in-out transform hover:bg-[#4FC3F7] hover:scale-105 hover:text-black">
-        Contact Me
-      </section>
-      <div
-        className={`hamburgerMenu z-10 flex md:hidden ${isActive ? "active fixed" : ""}`}
-        onClick={toggleMenu}
+      <a
+        href="/login"
+        className="hidden md:flex bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-200"
       >
-        <div className="bar"></div>
-        <div className="bar"></div>
-        <div className="bar"></div>
-      </div>
+        Log in
+      </a>
+      <Image
+        src={ham}
+        alt="ham"
+        className="block md:hidden cursor-pointer"
+        onClick={handleSidebar}
+      />
     </div>
   );
 };
 
-export default NavBar;
+export default Navbar;
