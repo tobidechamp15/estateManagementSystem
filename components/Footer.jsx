@@ -5,43 +5,35 @@ import linkedinIcon from "../public/assets/linkedinIcon.svg";
 import instaIcon from "../public/assets/instaIcon.svg";
 import twitIcon from "../public/assets/twitIcon.svg";
 import githubIcon from "../public/assets/githubIcon.svg";
+import logo from "../public/assets/logo.svg";
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear(); // Gets the current year
+
   return (
     <>
       <div className="flex flex-col gap-[40px] items-center  xsm:px-[25px] w-full ">
-        <div className="flex w-full items-center justify-around">
+        <div className="flex w-full flex-col gap-4 ">
           <span className="foot-des md:max-w-[630px]">
-            Let's Work Together!{`  `}
+            <Image src={logo} alt="logo " />
           </span>
-          {/* <a
-            href=" tobidechamp15@gmail.com"
-            className="gmail flex flex-wrap gap-2 items-center border border-gray-300 p-2 rounded-xl"
-          >
-            <Image src={gmailIcon} />
-            tobidechamp15@gmail.com
-          </a> */}
+          <div className=" gap-[32px] items-center itemTabs flex flex-wrap">
+            <span>Home</span>
+            <span>About Us</span>
+            <span>How it work</span>
+            <span>Contact Us</span>
+          </div>
         </div>
       </div>
-      <hr className="w-full border-[#484E53] my-7" />
-      <div className=" flex flex-wrap justify-around w-full my-[36px]">
-        <span className="reserved">@2024 all rights reserved.</span>
-        <div className="flex gap-3 items-center">
-          <a href="https://www.linkedin.com/in/tobiloba-emmanuel-4bba71249/">
-            <Image src={linkedinIcon} />
-          </a>
-          <a href="https://www.instagram.com/de_champ__/">
-            <Image src={instaIcon} />
-          </a>
-          <a href="https://x.com/tobidechamp15">
-            <Image src={twitIcon} />
-          </a>
-          <a
-            href="https://github.com/tobidechamp15"
-            style={{ clipPath: "circle(50% at 50% 50%)" }}
-          >
-            <Image src={githubIcon} className="w-[32px] bg-[#aeb0b4]" />
-          </a>
+      <hr className="w-full border-[#a8a6a6] my-7" />
+      <div className=" flex flex-wrap justify-between w-full my-[36px]">
+        <span className="reserved">
+          © {currentYear} ESMS. All rights reserved.
+        </span>
+        <div className="flex flex-wrap gap-4  ">
+          <span className="reserved">Terms</span>
+          <span className="reserved">Privacy</span>
+          <span className="reserved">Cookies</span>
         </div>
       </div>
     </>
