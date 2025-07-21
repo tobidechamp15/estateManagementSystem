@@ -37,11 +37,11 @@ const Hero = () => {
       className=" relative items-start justify-between md:pt-[80px] xsm:mb-[90px] flex xsm:flex-col gap-[20px] md:xsm:px-[25px] "
     >
       <div className="flex flex-col gap-4 md:w-1/2">
-        <span className="hero-name text-center">
+        <span className="hero-name text-start">
           Estate Security & Management System
         </span>
         {/* <span className="job-title">Software Engineer</span> */}
-        <span className="job-des text-center">
+        <span className="job-des text-start">
           Effortlessly manage resident registrations, visitor invitations, and
           security verification—all in one platform.
         </span>
@@ -78,7 +78,7 @@ const Hero = () => {
         </form>
         <span className="font-normal text-gray-600 ">
           Already have an account?
-          <Link href="/login" className="text-blue-900 font-semibold">
+          <Link href="/" className="text-blue-900 font-semibold">
             {" "}
             Log in
           </Link>

@@ -1,0 +1,555 @@
+# Visitor Management System with QR Codes for Estate Access
+
+Here's how to extend your estate management system to handle visitor access using QR codes:
+
+## System Overview
+
+1. **Resident Generates QR Code**: Resident creates a visitor pass in their portal
+2. **Visitor Receives QR Code**: Sent via email/SMS with visit details
+3. **Gate Verification**: Security scans QR code at gate to validate access
+4. **Access Logging**: System records all visitor entries/exits
+
+## Database Schema Extensions
+
+Add these models to your MongoDB:
+
+### 1. Visitor Schema
+
+```javascript
+// models/Visitor.js
+import mongoose from 'mongoose';
+
+const visitorSchema = new mongoose.Schema({
+  residentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  visitorName: {
+    type: String,
+    required: true
+  },
+  visitorPhone: {
+    type: String,
+    required: true
+  },
+  visitorEmail: {
+    type: String
+  },
+  visitPurpose: {
+    type: String,
+    required: true
+  },
+  visitDate: {
+    type: Date,
+    required: true
+  },
+  expectedArrival: {
+    type: String,
+    required: true
+  },
+  qrCode: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  isUsed: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+export default mongoose.models.Visitor || mongoose.model('Visitor', visitorSchema);
+```
+
+### 2. Visit Log Schema
+
+```javascript
+// models/VisitLog.js
+import mongoose from 'mongoose';
+
+const visitLogSchema = new mongoose.Schema({
+  visitorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Visitor',
+    required: true
+  },
+  residentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  scanTime: {
+    type: Date,
+    default: Date.now
+  },
+  scanType: {
+    type: String,
+    enum: ['entry', 'exit'],
+    required: true
+  },
+  scannedBy: {
+    type: String // Could be security personnel ID
+  }
+});
+
+export default mongoose.models.VisitLog || mongoose.model('VisitLog', visitLogSchema);
+```
+
+## API Endpoints
+
+### 1. Resident Creates Visitor Pass
+
+```javascript
+// pages/api/resident/create-visitor-pass.js
+import Visitor from '../../../models/Visitor';
+import User from '../../../models/User';
+import dbConnect from '../../../utils/dbConnect';
+import QRCode from 'qrcode';
+import { v4 as uuidv4 } from 'uuid';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  await dbConnect();
+
+  const { residentId, visitorData } = req.body;
+
+  try {
+    // Verify resident exists
+    const resident = await User.findById(residentId);
+    if (!resident) {
+      return res.status(404).json({ message: 'Resident not found' });
+    }
+
+    // Generate unique QR code data
+    const qrCodeData = uuidv4();
+    
+    // Generate QR code image
+    const qrCodeImage = await QRCode.toDataURL(qrCodeData);
+
+    // Create visitor record
+    const visitor = new Visitor({
+      residentId,
+      ...visitorData,
+      qrCode: qrCodeData
+    });
+
+    await visitor.save();
+
+    // In production, you would send this via email/SMS
+    const visitorPass = {
+      id: visitor._id,
+      residentName: resident.fullName,
+      residentAddress: resident.address,
+      ...visitorData,
+      qrCodeImage,
+      visitDate: visitor.visitDate
+    };
+
+    return res.status(201).json(visitorPass);
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error' });
+  }
+}
+```
+
+### 2. Gate Verification Endpoint
+
+```javascript
+// pages/api/gate/verify-visitor.js
+import Visitor from '../../../models/Visitor';
+import VisitLog from '../../../models/VisitLog';
+import dbConnect from '../../../utils/dbConnect';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  await dbConnect();
+
+  const { qrCode, scanType } = req.body;
+
+  try {
+    // Find visitor by QR code
+    const visitor = await Visitor.findOne({ qrCode });
+    
+    if (!visitor) {
+      return res.status(404).json({ 
+        valid: false,
+        message: 'Invalid QR code' 
+      });
+    }
+
+    // Check if visit date is today
+    const today = new Date();
+    const visitDate = new Date(visitor.visitDate);
+    
+    if (visitDate.toDateString() !== today.toDateString()) {
+      return res.status(400).json({
+        valid: false,
+        message: 'This pass is not valid for today'
+      });
+    }
+
+    // For exit scans, don't check isUsed
+    if (scanType === 'entry') {
+      if (visitor.isUsed) {
+        return res.status(400).json({
+          valid: false,
+          message: 'This pass has already been used'
+        });
+      }
+      
+      // Mark as used for entry scans
+      visitor.isUsed = true;
+      await visitor.save();
+    }
+
+    // Create visit log
+    const visitLog = new VisitLog({
+      visitorId: visitor._id,
+      residentId: visitor.residentId,
+      scanType
+    });
+    await visitLog.save();
+
+    // Get resident details
+    const resident = await User.findById(visitor.residentId)
+      .select('fullName address phone');
+
+    return res.status(200).json({
+      valid: true,
+      visitor: {
+        name: visitor.visitorName,
+        purpose: visitor.visitPurpose
+      },
+      resident,
+      message: 'Access granted'
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error' });
+  }
+}
+```
+
+## Frontend Components
+
+### 1. Resident Visitor Management Portal
+
+```javascript
+// pages/resident/visitors.js
+import { useState } from 'react';
+import QRCode from 'qrcode.react';
+import { useSession } from 'next-auth/react';
+
+export default function VisitorManagement() {
+  const { data: session } = useSession();
+  const [visitorData, setVisitorData] = useState({
+    visitorName: '',
+    visitorPhone: '',
+    visitorEmail: '',
+    visitPurpose: '',
+    visitDate: '',
+    expectedArrival: ''
+  });
+  const [generatedPass, setGeneratedPass] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setVisitorData({
+      ...visitorData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/resident/create-visitor-pass', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.accessToken}`
+        },
+        body: JSON.stringify({
+          residentId: session.user.id,
+          visitorData
+        }),
+      });
+
+      const data = await response.json();
+      setGeneratedPass(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Create Visitor Pass</h1>
+      
+      {!generatedPass ? (
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Visitor Name:</label>
+            <input
+              name="visitorName"
+              value={visitorData.visitorName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div>
+            <label>Visitor Phone:</label>
+            <input
+              name="visitorPhone"
+              value={visitorData.visitorPhone}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div>
+            <label>Visitor Email (optional):</label>
+            <input
+              name="visitorEmail"
+              type="email"
+              value={visitorData.visitorEmail}
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div>
+            <label>Visit Purpose:</label>
+            <select
+              name="visitPurpose"
+              value={visitorData.visitPurpose}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select purpose</option>
+              <option value="Delivery">Delivery</option>
+              <option value="Family Visit">Family Visit</option>
+              <option value="Service Provider">Service Provider</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div>
+            <label>Visit Date:</label>
+            <input
+              name="visitDate"
+              type="date"
+              value={visitorData.visitDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div>
+            <label>Expected Arrival Time:</label>
+            <input
+              name="expectedArrival"
+              type="time"
+              value={visitorData.expectedArrival}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <button type="submit" disabled={loading}>
+            {loading ? 'Generating...' : 'Generate Pass'}
+          </button>
+        </form>
+      ) : (
+        <div className="visitor-pass">
+          <h2>Visitor Pass</h2>
+          <p><strong>Visitor:</strong> {generatedPass.visitorName}</p>
+          <p><strong>Purpose:</strong> {generatedPass.visitPurpose}</p>
+          <p><strong>Date:</strong> {new Date(generatedPass.visitDate).toLocaleDateString()}</p>
+          <p><strong>Time:</strong> {generatedPass.expectedArrival}</p>
+          <p><strong>Host:</strong> {generatedPass.residentName} ({generatedPass.residentAddress})</p>
+          
+          <div className="qr-code">
+            <QRCode value={generatedPass.qrCodeImage} size={200} />
+          </div>
+          
+          <button onClick={() => {
+            // In production, you would implement email/SMS sending here
+            alert('Pass would be sent to visitor in production');
+            setGeneratedPass(null);
+            setVisitorData({
+              visitorName: '',
+              visitorPhone: '',
+              visitorEmail: '',
+              visitPurpose: '',
+              visitDate: '',
+              expectedArrival: ''
+            });
+          }}>
+            Send to Visitor
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### 2. Gate Scanning Interface
+
+```javascript
+// pages/gate/scanner.js
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
+
+// Dynamically import QR scanner to avoid SSR issues
+const QrReader = dynamic(() => import('react-qr-reader'), { ssr: false });
+
+export default function GateScanner() {
+  const [scanResult, setScanResult] = useState('');
+  const [scanType, setScanType] = useState('entry');
+  const [verificationResult, setVerificationResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleScan = async (data) => {
+    if (data && !loading) {
+      setScanResult(data);
+      setLoading(true);
+      
+      try {
+        const response = await fetch('/api/gate/verify-visitor', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            qrCode: data,
+            scanType
+          }),
+        });
+
+        const result = await response.json();
+        setVerificationResult(result);
+      } catch (error) {
+        console.error(error);
+        setVerificationResult({
+          valid: false,
+          message: 'Error verifying QR code'
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleError = (err) => {
+    console.error(err);
+  };
+
+  const resetScanner = () => {
+    setScanResult('');
+    setVerificationResult(null);
+  };
+
+  return (
+    <div>
+      <h1>Gate Scanner</h1>
+      
+      <div>
+        <label>
+          <input
+            type="radio"
+            checked={scanType === 'entry'}
+            onChange={() => setScanType('entry')}
+          />
+          Entry Scan
+        </label>
+        <label>
+          <input
+            type="radio"
+            checked={scanType === 'exit'}
+            onChange={() => setScanType('exit')}
+          />
+          Exit Scan
+        </label>
+      </div>
+      
+      {!verificationResult ? (
+        <div className="scanner-container">
+          {QrReader && (
+            <QrReader
+              delay={300}
+              onError={handleError}
+              onScan={handleScan}
+              style={{ width: '100%' }}
+            />
+          )}
+          {loading && <p>Verifying...</p>}
+        </div>
+      ) : (
+        <div className={`verification-result ${verificationResult.valid ? 'valid' : 'invalid'}`}>
+          <h2>{verificationResult.valid ? 'ACCESS GRANTED' : 'ACCESS DENIED'}</h2>
+          {verificationResult.valid && (
+            <>
+              <p><strong>Visitor:</strong> {verificationResult.visitor.name}</p>
+              <p><strong>Purpose:</strong> {verificationResult.visitor.purpose}</p>
+              <p><strong>Host:</strong> {verificationResult.resident.fullName}</p>
+              <p><strong>Address:</strong> {verificationResult.resident.address}</p>
+            </>
+          )}
+          <p>{verificationResult.message}</p>
+          
+          <button onClick={resetScanner}>Scan Next Visitor</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Security Enhancements
+
+1. **QR Code Expiration**: Add expiration time to QR codes
+   ```javascript
+   // In Visitor schema
+   expiresAt: {
+     type: Date,
+     default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+   }
+   ```
+
+2. **Rate Limiting**: Limit how many passes a resident can generate
+3. **Blacklisting**: Allow residents to revoke issued passes
+4. **Visitor Photos**: Optionally require visitor photos for verification
+5. **SMS Notifications**: Notify residents when their visitor arrives
+
+## Mobile Considerations
+
+1. **Responsive Design**: Ensure all interfaces work on mobile
+2. **Pass Download**: Allow visitors to download pass as image/PDF
+3. **Deep Links**: Use app links for registered users to open pass directly in app
+
+This implementation provides a complete QR code-based visitor management system that integrates with your existing estate management platform, giving residents control over their visitors while maintaining security at the gate.
+
+
+
+
+
+
+

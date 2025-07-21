@@ -53,7 +53,7 @@ const Projects = () => {
 
   return (
     <motion.div
-      className="flex flex-col gap-[40px] items-center mb-[80px] xsm:px-[25px]"
+      className="flex flex-col gap-[40px] items-center mb-[80px] "
       ref={ref}
       initial="hidden"
       animate={controls}
