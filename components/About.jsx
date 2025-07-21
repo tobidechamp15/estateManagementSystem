@@ -41,7 +41,7 @@ const About = () => {
       initial="hidden"
       animate={controls}
       variants={aboutVariants}
-      className="flex flex-col md:flex-row md:justify-between gap-[40px] items-center xsm:px-[25px] mb-[190px] xsm:mt-4"
+      className="flex flex-col md:flex-row md:justify-between gap-[40px] items-center  mb-[190px] xsm:mt-4"
     >
       <div className="md:w-1/2">
         <div className="flex flex-col items-start justify-center">
