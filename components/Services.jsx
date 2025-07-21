@@ -84,7 +84,7 @@ const Services = () => {
       initial="hidden"
       animate={controls}
       variants={parentVariants}
-      className="flex flex-col ga items-center md:my-[202px] xsm:px-[25px] mt-8"
+      className="flex flex-col ga items-center md:my-[202px] mt-8"
     >
       <motion.div
         className="flex flex-col items-center justify-center"

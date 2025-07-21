@@ -67,7 +67,7 @@ const Contact = () => {
         hidden: {},
         visible: { transition: { staggerChildren: 0.2 } },
       }}
-      className="flex flex-col gap-[40px] items-center mb-[190px] xsm:px-[25px] w-full"
+      className="flex flex-col gap-[40px] items-center mb-[190px] w-full"
     >
       <motion.div
         className="flex flex-col items-center justify-center"

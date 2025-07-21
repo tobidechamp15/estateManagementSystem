@@ -26,7 +26,7 @@ const Navbar = () => {
         </div>
       </section>
       <a
-        href="/login"
+        href="/ "
         className="hidden md:flex bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-200"
       >
         Log in
