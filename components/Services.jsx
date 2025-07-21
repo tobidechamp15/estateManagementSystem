@@ -1,13 +1,15 @@
+"use client";
 import React, { useEffect } from "react";
 import Image from "next/image";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
-import webDevIcon from "../public/assets/web-dev-icon.png";
-import cloudIcon from "../public/assets/cloudIcon.png";
-import databaseIcon from "../public/assets/databaseIcon.png";
-import optIcon from "../public/assets/optIcon.png";
-import supportIcon from "../public/assets/supportIcon.png";
+import webDevIcon from "../public/assets/odeaoLab.svg";
+import cloudIcon from "../public/assets/kintsug.svg";
+import databaseIcon from "../public/assets/stackedLogo.svg";
+import optIcon from "../public/assets/magnolia.svg";
+import supportIcon from "../public/assets/warpspeed.svg";
+import sisyphus from "../public/assets/sisyphus.svg";
 
 const services = [
   {
@@ -36,6 +38,12 @@ const services = [
   },
   {
     icon: supportIcon,
+    title: "Software Maintenance and Support",
+    description:
+      "Providing ongoing maintenance and support for existing software applications to ensure they run smoothly.",
+  },
+  {
+    icon: sisyphus,
     title: "Software Maintenance and Support",
     description:
       "Providing ongoing maintenance and support for existing software applications to ensure they run smoothly.",
@@ -76,18 +84,18 @@ const Services = () => {
       initial="hidden"
       animate={controls}
       variants={parentVariants}
-      className="flex flex-col gap-[40px] items-center mb-[190px] xsm:px-[25px]"
+      className="flex flex-col ga items-center md:my-[202px] xsm:px-[25px] mt-8"
     >
       <motion.div
         className="flex flex-col items-center justify-center"
         variants={childVariants}
       >
-        <span className="sub-head">What I do</span>
-        <span className="sub-des">My Services</span>
+        <span className="sub-head">Join 200+ estates already using ESMS</span>
+        {/* <span className="sub-des">My Services</span> */}
       </motion.div>
 
       <motion.section
-        className="flex flex-wrap justify-center gap-4 max-w-[929px]"
+        className="flex flex-wrap justify-center ga  items-center"
         variants={parentVariants}
       >
         {services.map((service, index) => (
@@ -96,9 +104,9 @@ const Services = () => {
             variants={childVariants}
             className="service-card gap-3 py-[29px] px-[26px] flex flex-col text-white max-w-[289px]"
           >
-            <Image src={service.icon} alt={service.title} width={44} height={44} />
-            <span className="service-name">{service.title}</span>
-            <span className="service-desc">{service.description}</span>
+            <Image src={service.icon} alt={service.title} />
+            {/* <span className="service-name">{service.title}</span>
+            <span className="service-desc">{service.description}</span> */}
           </motion.div>
         ))}
       </motion.section>
