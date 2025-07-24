@@ -8,6 +8,7 @@ import userReview from "../public/assets/userReviews.svg";
 import logo from "../public/assets/logo.svg";
 import midArrow from "../public/assets/midArrow.svg";
 import Link from "next/link";
+import dbConnect from "@/lib/mongodb";
 
 const Hero = () => {
   const controls = useAnimation();
@@ -16,6 +17,7 @@ const Hero = () => {
   });
 
   useEffect(() => {
+    // await dbConnect();
     if (inView) {
       controls.start("visible");
     } else {

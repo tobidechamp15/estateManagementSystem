@@ -1,13 +1,15 @@
-import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import dbConnect from "@/lib/mongodb";
+import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 export async function POST(request) {
   try {
+    await dbConnect();
     const body = await request.json();
 
     // Create a transporter using SMTP
     let transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com', // Replace with your SMTP host
+      host: "smtp.gmail.com", // Replace with your SMTP host
       port: 587,
       secure: false, // Use TLS
       auth: {
@@ -18,9 +20,9 @@ export async function POST(request) {
 
     // Send mail with defined transport object
     let info = await transporter.sendMail({
-      from: 'localhost:3000 email', // sender address
-      to: 'tobidechamp15@gmail.com', // list of receivers
-      subject: 'New Contact Form Submission', // Subject line
+      from: "localhost:3000 email", // sender address
+      to: "tobidechamp15@gmail.com", // list of receivers
+      subject: "New Contact Form Submission", // Subject line
       text: `
         Name: ${body.name}
         Email: ${body.email}
@@ -34,16 +36,16 @@ export async function POST(request) {
       `, // html body
     });
 
-    console.log('Message sent: %s', info.messageId);
+    console.log("Message sent: %s", info.messageId);
 
     return NextResponse.json(
-      { message: 'Form submission received and email sent' },
+      { message: "Form submission received and email sent" },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error processing form submission:', error);
+    console.error("Error processing form submission:", error);
     return NextResponse.json(
-      { message: 'Error processing form submission' },
+      { message: "Error processing form submission" },
       { status: 500 }
     );
   }
