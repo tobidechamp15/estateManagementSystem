@@ -42,6 +42,7 @@ const Hero = () => {
       setLoading(true);
       setError("");
       let accessCode = code;
+      localStorage.setItem("accessCode", accessCode);
       const res = await fetch(`/api/auth/check-code`, {
         method: "POST",
         headers: {
@@ -56,14 +57,12 @@ const Hero = () => {
 
       const data = await res.json();
       const userExists = data.exists;
+      localStorage.setItem("userExists", userExists);
+      localStorage.setItem("userData", JSON.stringify(data.userData));
       console.log(data.exists);
-      if (userExists) {
-        router.push("/login");
-      } else {
-        router.push("/signup");
-      }
+      router.push("/authTabs");
       // Handle successful authentication here
-      // router.push('/dashboard') or similar
+      // router.push('/dashboard') or similarvuserData
     } catch (error) {
       console.log(error);
       setError(error.message);
