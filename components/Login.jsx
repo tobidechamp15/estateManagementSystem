@@ -76,6 +76,7 @@ export default function Login() {
               <input
                 type="email"
                 value={email}
+                disabled
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"

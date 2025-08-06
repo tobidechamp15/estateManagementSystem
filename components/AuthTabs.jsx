@@ -1,12 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Signup from "./Signup";
 import Login from "./Login";
 
 export default function AuthTabs() {
-  const exists = localStorage.getItem("userExists");
-  const [tab, setTab] = useState(exists === "true" ? "login" : "signup"); // Initialize based on `exists`
+  const [tab, setTab] = useState("signup"); // Default to signup initially
+  const [hasCheckedStorage, setHasCheckedStorage] = useState(false); // Track if we've checked localStorage
+
+  useEffect(() => {
+    // Only run on client side after component mounts
+    const exists = localStorage.getItem("userExists");
+    setTab(exists === "true" ? "login" : "signup");
+    setHasCheckedStorage(true);
+  }, []);
+
+  // Don't render until we've checked localStorage
+  if (!hasCheckedStorage) {
+    return null; // or return a loading spinner
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 md:px-4 py-12">
