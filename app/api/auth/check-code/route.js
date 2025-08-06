@@ -44,6 +44,7 @@ export async function POST(request) {
         exists: true,
         email: user.email,
         message: "Account exists, please login",
+        userData: user,
       });
     } else {
       return NextResponse.json({
