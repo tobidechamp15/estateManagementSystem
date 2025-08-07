@@ -26,16 +26,15 @@ export default function Home() {
   ];
 
   return (
-    <main className="bg-gray-100 min-h-screen font-sans">
-      <Header />
-      <section className="p-4">
+    <main className="">
+      <section className="py-[48px] container flex flex-col gap-5">
         <h1 className="text-2xl font-bold mb-1">Hello 👋</h1>
         <p className="text-sm text-gray-600 mb-4">
           Ready to manage who comes through your gate?
         </p>
         <VisitorStats total={18} upcoming={8} />
         <DateFilter />
-        <div className="flex flex-wrap gap-4 p-4 justify-start">
+        <div className="flex flex-wrap gap-4  justify-start">
           {visitors.map((visitor, index) => (
             <VisitorCard key={index} {...visitor} />
           ))}
